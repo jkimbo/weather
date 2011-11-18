@@ -77,9 +77,12 @@
                     if(time() > $sunset) { // if after sunset
                         $image = $weatherstatus[$key]['night'];
                     } else {
-                        $image = $weatherstatus[$key]['night'];
+                        $image = $weatherstatus[$key]['day'];
                     }
+                    list($width, $height, $type, $attr) = getimagesize($image);
         ?>
+                    <input type="hidden" id="width" value="<?php echo $width; ?>"/>
+                    <input type="hidden" id="height" value="<?php echo $height; ?>"/>
                     <img src="<?php echo $image;?>" id="bgimg" title="<?php echo $current; ?>"/>
         <?php
                 }             

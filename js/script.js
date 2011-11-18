@@ -3,7 +3,9 @@
 */
 
 $(document).ready(function() {
-    var FullscreenrOptions = {  width: 1200, height: 802, bgID: '#bgimg' };
+    var width = $('#width').val();
+    var height = $('#height').val();
+    var FullscreenrOptions = {  width: width, height: height, bgID: '#bgimg' };
     $.fn.fullscreenr(FullscreenrOptions);
     $('body').height($(window).height());
 });
