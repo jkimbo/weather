@@ -50,10 +50,13 @@
             closedir($handle);
         }
 
-        $address = 'SW72BB';
+        if(isset($_GET['loc']))
+            $address = $_GET['loc'];
+        else
+            $address = 'SW72BB';
 
         /* Get lat and longitude */
-        $latlongAddress = "http://maps.googleapis.com/maps/api/geocode/xml?address=sw72bb&sensor=true";
+        $latlongAddress = "http://maps.googleapis.com/maps/api/geocode/xml?address=".$address."&sensor=true";
         $latlong_str = file_get_contents($latlongAddress,0);
         $latlong_xml = new SimplexmlElement($latlong_str);
         $lat = $latlong_xml->result->geometry->location->lat;
@@ -67,8 +70,10 @@
 
         foreach($xml->weather as $item) { 
             $current = $item->current_conditions->condition['data']; 
+            $found = false;
             foreach($weatherstatus as $key => $status) { 
                 if($key == $current) {
+                    $found = true;
                     if(time() > $sunset) { // if after sunset
                         $image = $weatherstatus[$key]['night'];
                     } else {
@@ -77,8 +82,11 @@
         ?>
                     <img src="<?php echo $image;?>" id="bgimg" title="<?php echo $current; ?>"/>
         <?php
-                }
+                }             
             }
+            if(!$found) { ?>
+                <div id="fallback"><?php echo $current; ?></div>
+            <?php }
             $temp = $item->current_conditions->temp_c['data'].'&#176;C'; // get temperature
         } ?>
 

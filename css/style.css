@@ -216,6 +216,16 @@ body {
     overflow: hidden;
 }
 
+#fallback {
+    width: 50%;
+    margin: 0 auto;
+    margin-top: 10%;
+    font-size: 4em;
+    color: gray;
+    font-style: italic;
+    text-align: center;
+}
+
 #current {
     position: absolute;
     bottom: 10%;
