@@ -33,24 +33,53 @@
 
 <body>
     <?php
-        $weatherstatus = array(
-            "Sunny" => "",
-            "Partly Cloudy" => "img/partly_cloudy.jpg",
-            "Cloudy" => "",
-            "Mostly Sunny" => ""
-        );
-        $requestAddress = "http://www.google.com/ig/api?weather=SW72BB&hl=en";
-        // Downloads weather data based on location - I used my zip code.
-        $xml_str = file_get_contents($requestAddress,0);
-        // Parses XML
+        $dir = 'img/weather/';
+        $weatherstatus = array();
+        if ($handle = opendir($dir)) {
+            while (false !== ($file = readdir($handle))) {
+                if ($file != "." && $file != "..") {
+                    $file = trim(str_replace('_', ' ', str_replace('day', '', $file)));
+                    $file = trim(str_replace('_', ' ', str_replace('night', '', $file)));
+                    $info = pathinfo($file);
+                    $file_name =  basename($file,'.'.$info['extension']);
+                    $file_name = ucfirst(strtolower(trim(str_replace('_', ' ', $file_name))));
+                    $weatherstatus[$file_name]['night'] = $dir.'night_'.$file;
+                    $weatherstatus[$file_name]['day'] = $dir.'day_'.$file;
+                }
+            }
+            closedir($handle);
+        }
+
+        $address = 'SW72BB';
+
+        /* Get lat and longitude */
+        $latlongAddress = "http://maps.googleapis.com/maps/api/geocode/xml?address=sw72bb&sensor=true";
+        $latlong_str = file_get_contents($latlongAddress,0);
+        $latlong_xml = new SimplexmlElement($latlong_str);
+        $lat = $latlong_xml->result->geometry->location->lat;
+        $long = $latlong_xml->result->geometry->location->lng;
+        $sunrise = date_sunrise(time(), SUNFUNCS_RET_TIMESTAMP, floatval($lat), floatval($long), 90, 0);
+        $sunset = date_sunset(time(), SUNFUNCS_RET_TIMESTAMP, floatval($lat), floatval($long), 90, 0);
+
+        $weatherAddress = "http://www.google.com/ig/api?weather=".$address."&l=en";
+        $xml_str = file_get_contents($weatherAddress,0);
         $xml = new SimplexmlElement($xml_str);
 
-        foreach($xml->weather as $item) { ?>
-            <?php echo $weatherstatus[$item->current_conditions->condition['data']]; ?>
-            <!-- <img src="<?php echo $weatherstatus['"'.$item->current_conditions->condition['data'].'"'];?>" id="bgimg"/> -->
-                <img src="<?php echo $weatherstatus['Partly Cloudy'];?>" id="bgimg" title="<?php echo $item->current_conditions->condition['data']; ?>"/>
-            <?php
-            $temp = $item->current_conditions->temp_c['data'].'&#176;C';
+        foreach($xml->weather as $item) { 
+            $current = $item->current_conditions->condition['data']; 
+            foreach($weatherstatus as $key => $status) { 
+                if($key == $current) {
+                    if(time() > $sunset) { // if after sunset
+                        $image = $weatherstatus[$key]['night'];
+                    } else {
+                        $image = $weatherstatus[$key]['night'];
+                    }
+        ?>
+                    <img src="<?php echo $image;?>" id="bgimg" title="<?php echo $current; ?>"/>
+        <?php
+                }
+            }
+            $temp = $item->current_conditions->temp_c['data'].'&#176;C'; // get temperature
         } ?>
 
         <div role="main" id="main">
