@@ -38,11 +38,12 @@
         if ($handle = opendir($dir)) {
             while (false !== ($file = readdir($handle))) {
                 if ($file != "." && $file != "..") {
-                    $file = trim(str_replace('_', ' ', str_replace('day', '', $file)));
-                    $file = trim(str_replace('_', ' ', str_replace('night', '', $file)));
+                    $file = trim(str_replace('day', '', $file));
+                    $file = trim(str_replace('night', '', $file));
+                    $file = substr($file, 1);
                     $info = pathinfo($file);
                     $file_name =  basename($file,'.'.$info['extension']);
-                    $file_name = ucfirst(strtolower(trim(str_replace('_', ' ', $file_name))));
+                    $file_name = trim(str_replace('_', ' ', $file_name));
                     $weatherstatus[$file_name]['night'] = str_replace(' ', '_', $dir.'night_'.$file);
                     $weatherstatus[$file_name]['day'] = str_replace(' ', '_', $dir.'day_'.$file);
                 }
@@ -69,7 +70,10 @@
         $xml = new SimplexmlElement($xml_str);
 
         foreach($xml->weather as $item) { 
-            $current = $item->current_conditions->condition['data']; 
+            $current = str_replace('/ig/images/weather/', '', $item->current_conditions->icon['data']); 
+            $info = pathinfo($current);
+            $current = basename($current,'.'.$info['extension']);
+            $current = str_replace('_', ' ', $current);
             $found = false;
             foreach($weatherstatus as $key => $status) { 
                 if($key == $current) {
