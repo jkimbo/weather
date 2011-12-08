@@ -3,11 +3,13 @@
 */
 
 $(document).ready(function() {
-    var width = $('#width').val();
-    var height = $('#height').val();
-    var FullscreenrOptions = {  width: width, height: height, bgID: '#bgimg' };
-    $.fn.fullscreenr(FullscreenrOptions);
-    $('body').height($(window).height());
+    if($('#bgimg').length) {
+        var width = $('#width').val();
+        var height = $('#height').val();
+        var FullscreenrOptions = {  width: width, height: height, bgID: '#bgimg' };
+        $.fn.fullscreenr(FullscreenrOptions);
+        $('body').height($(window).height());
+    }
 });
 
 $(window).resize(function() {
