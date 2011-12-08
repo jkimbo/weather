@@ -51,46 +51,64 @@
             closedir($handle);
         }
 
-        if(isset($_GET['loc']))
-            $address = $_GET['loc'];
-        else
-            $address = 'SW72BB';
-
-        /* Get lat and longitude */
-        $latlongAddress = "http://maps.googleapis.com/maps/api/geocode/xml?address=".$address."&sensor=true";
-        $latlong_str = file_get_contents($latlongAddress,0);
-        $latlong_xml = new SimplexmlElement($latlong_str);
-        $lat = $latlong_xml->result->geometry->location->lat;
-        $long = $latlong_xml->result->geometry->location->lng;
-        $sunrise = date_sunrise(time(), SUNFUNCS_RET_TIMESTAMP, floatval($lat), floatval($long), 90, 0);
-        $sunset = date_sunset(time(), SUNFUNCS_RET_TIMESTAMP, floatval($lat), floatval($long), 90, 0);
-
-        $weatherAddress = "http://www.google.com/ig/api?weather=".$address."&l=en";
-        $xml_str = file_get_contents($weatherAddress,0);
-        $xml = new SimplexmlElement($xml_str);
-
-        foreach($xml->weather as $item) { 
-            $current = str_replace('/ig/images/weather/', '', $item->current_conditions->icon['data']); 
-            $info = pathinfo($current);
-            $current = basename($current,'.'.$info['extension']);
-            $current = str_replace('_', ' ', $current);
-            $found = false;
-            if($weatherstatus[$current]) {
-                if(time() > $sunset) { // if after sunset
-                    $image = $weatherstatus[$current]['night'];
+        if(isset($_GET['force'])) {
+            if($weatherstatus[$_GET['force']]) {
+                if(isset($_GET['time']) && $_GET['time'] == 'night') {
+                    $image = $weatherstatus[$_GET['force']]['night'];
                 } else {
-                    $image = $weatherstatus[$current]['day'];
+                    $image = $weatherstatus[$_GET['force']]['day'];
                 }
                 list($width, $height, $type, $attr) = getimagesize($image);
-        ?>
-                    <input type="hidden" id="width" value="<?php echo $width; ?>"/>
-                    <input type="hidden" id="height" value="<?php echo $height; ?>"/>
-                    <img src="<?php echo $image;?>" id="bgimg" title="<?php echo $current; ?>"/>
-        <?php
+            ?>
+                        <input type="hidden" id="width" value="<?php echo $width; ?>"/>
+                        <input type="hidden" id="height" value="<?php echo $height; ?>"/>
+                        <img src="<?php echo $image;?>" id="bgimg" title="<?php echo $_GET['force']; ?>"/>
+            <?php
             } else { ?>
-                <div id="fallback"><?php echo $current; ?></div>
+                <div id="fallback"><?php echo $_GET['force']; ?></div>
             <?php }
-            $temp = $item->current_conditions->temp_c['data'].'&#176;C'; // get temperature
+        } else { 
+            if(isset($_GET['loc']))
+                $address = $_GET['loc'];
+            else
+                $address = 'SW72BB';
+
+            /* Get lat and longitude */
+            $latlongAddress = "http://maps.googleapis.com/maps/api/geocode/xml?address=".$address."&sensor=true";
+            $latlong_str = file_get_contents($latlongAddress,0);
+            $latlong_xml = new SimplexmlElement($latlong_str);
+            $lat = $latlong_xml->result->geometry->location->lat;
+            $long = $latlong_xml->result->geometry->location->lng;
+            $sunrise = date_sunrise(time(), SUNFUNCS_RET_TIMESTAMP, floatval($lat), floatval($long), 90, 0);
+            $sunset = date_sunset(time(), SUNFUNCS_RET_TIMESTAMP, floatval($lat), floatval($long), 90, 0);
+
+            $weatherAddress = "http://www.google.com/ig/api?weather=".$address."&l=en";
+            $xml_str = file_get_contents($weatherAddress,0);
+            $xml = new SimplexmlElement($xml_str);
+
+            foreach($xml->weather as $item) { 
+                $current = str_replace('/ig/images/weather/', '', $item->current_conditions->icon['data']); 
+                $info = pathinfo($current);
+                $current = basename($current,'.'.$info['extension']);
+                $current = str_replace('_', ' ', $current);
+                $found = false;
+                if($weatherstatus[$current]) {
+                    if(time() > $sunset) { // if after sunset
+                        $image = $weatherstatus[$current]['night'];
+                    } else {
+                        $image = $weatherstatus[$current]['day'];
+                    }
+                    list($width, $height, $type, $attr) = getimagesize($image);
+            ?>
+                        <input type="hidden" id="width" value="<?php echo $width; ?>"/>
+                        <input type="hidden" id="height" value="<?php echo $height; ?>"/>
+                        <img src="<?php echo $image;?>" id="bgimg" title="<?php echo $current; ?>"/>
+            <?php
+                } else { ?>
+                    <div id="fallback"><?php echo $current; ?></div>
+                <?php }
+                $temp = $item->current_conditions->temp_c['data'].'&#176;C'; // get temperature
+            } 
         } ?>
 
         <div role="main" id="main">
