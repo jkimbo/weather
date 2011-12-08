@@ -75,23 +75,19 @@
             $current = basename($current,'.'.$info['extension']);
             $current = str_replace('_', ' ', $current);
             $found = false;
-            foreach($weatherstatus as $key => $status) { 
-                if($key == $current) {
-                    $found = true;
-                    if(time() > $sunset) { // if after sunset
-                        $image = $weatherstatus[$key]['night'];
-                    } else {
-                        $image = $weatherstatus[$key]['day'];
-                    }
-                    list($width, $height, $type, $attr) = getimagesize($image);
+            if($weatherstatus[$current]) {
+                if(time() > $sunset) { // if after sunset
+                    $image = $weatherstatus[$current]['night'];
+                } else {
+                    $image = $weatherstatus[$current]['day'];
+                }
+                list($width, $height, $type, $attr) = getimagesize($image);
         ?>
                     <input type="hidden" id="width" value="<?php echo $width; ?>"/>
                     <input type="hidden" id="height" value="<?php echo $height; ?>"/>
                     <img src="<?php echo $image;?>" id="bgimg" title="<?php echo $current; ?>"/>
         <?php
-                }             
-            }
-            if(!$found) { ?>
+            } else { ?>
                 <div id="fallback"><?php echo $current; ?></div>
             <?php }
             $temp = $item->current_conditions->temp_c['data'].'&#176;C'; // get temperature
